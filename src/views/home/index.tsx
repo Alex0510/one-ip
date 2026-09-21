@@ -20,6 +20,7 @@ import { t } from "@/i18n";
 import { toolGroups } from "@/layout/routes";
 import { companyTypeColors } from "@/lib/ip-badge-colors";
 import { ipScoreColor } from "@/lib/ip-score";
+import { withTimeout } from "@/lib/network";
 import { BrowserSummary } from "@/views/browser/summary";
 import { lookupIp } from "@/views/ip/api";
 import { PerfectScoreEffects } from "@/views/ip/perfect-score-effects";
@@ -164,7 +165,7 @@ export function HomePage() {
     queries: ips.map((ip) => ({
       queryKey: ["lookup-ip-coffee", ip],
       queryFn: ({ signal }: { signal: AbortSignal }) =>
-        lookupIp(ip, AbortSignal.any([signal, AbortSignal.timeout(3000)])),
+        lookupIp(ip, withTimeout(signal, 3000)),
       staleTime: 3600_000,
       retry: false,
       refetchOnWindowFocus: false,
