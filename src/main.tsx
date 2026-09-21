@@ -11,6 +11,11 @@ import ReactDOM from "react-dom/client";
 
 initializeLocale();
 
+// The legacy stylesheet is inserted by index.html before the React tree is
+// mounted. Keep the class explicit for CSS selectors and future diagnostics.
+if (document.getElementById("legacy-webkit-styles"))
+  document.documentElement.classList.add("legacy-webkit");
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Provider>
