@@ -1,5 +1,21 @@
 @import "./index.css";
 
+/* Safari 15.2 ignores the cascade layers emitted by Tailwind. Keep the
+   document geometry stable while the flattened compatibility sheet loads. */
+html.legacy-webkit,
+html.legacy-webkit *,
+html.legacy-webkit *::before,
+html.legacy-webkit *::after {
+  box-sizing: border-box;
+}
+html.legacy-webkit,
+html.legacy-webkit body,
+html.legacy-webkit #root {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 @media (max-width: 767px) {
   html,
   body {
@@ -2105,6 +2121,30 @@ body {
 
 /* Compact mobile overview and navigation. */
 @media (max-width: 48rem) {
+  html.legacy-webkit .mobile-site-header {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  html.legacy-webkit .mobile-site-header > div {
+    min-width: 0;
+    max-width: calc(100% - 40px);
+    flex-shrink: 1;
+  }
+  html.legacy-webkit .mobile-site-header button {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    padding: 0;
+  }
+  html.legacy-webkit .tool-subnav {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
   .app-nav {
     gap: 4px;
     padding: 4px;
@@ -4529,6 +4569,15 @@ body {
   .ai-network-check,
   .ai-network-check [data-slot="card-content"] {
     min-width: 0;
+    max-width: 100%;
+  }
+  html.legacy-webkit .ai-network-check [data-slot="table-container"],
+  html.legacy-webkit .ai-network-check [data-slot="table"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+  html.legacy-webkit .ai-network-check [data-slot="table-container"] {
+    overflow-x: hidden;
   }
   .ai-connectivity-table,
   .ai-connectivity-table tbody {
@@ -4550,6 +4599,9 @@ body {
     border: 0;
     border-radius: 10px;
     background: var(--muted);
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
   }
   .ai-connectivity-table td {
     min-width: 0;
@@ -4559,6 +4611,16 @@ body {
   .ai-connectivity-site {
     grid-column: 1;
     grid-row: 1;
+    overflow-wrap: anywhere;
+  }
+  html.legacy-webkit .ai-connectivity-site > span {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+  }
+  html.legacy-webkit .ai-connectivity-site > span > span:last-child {
+    min-width: 0;
     overflow-wrap: anywhere;
   }
   .ai-connectivity-latency {
