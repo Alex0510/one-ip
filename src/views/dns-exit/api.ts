@@ -1,5 +1,5 @@
 import { t } from "@/i18n";
-import { request } from "@/lib/network";
+import { request, throwIfAborted } from "@/lib/network";
 
 export const dnsSources = [
   { name: "Surfshark", host: "ipv4.surfsharkdns.com", path: "/", samples: 5 },
@@ -73,7 +73,7 @@ export async function sampleDnsSource(
   source: (typeof dnsSources)[number],
   signal: AbortSignal,
 ) {
-  signal.throwIfAborted();
+  throwIfAborted(signal);
   const token = crypto.randomUUID().replaceAll("-", "").slice(0, 10);
   const data = await request<unknown>(
     `https://${token}.${source.host}${source.path}`,
@@ -83,7 +83,7 @@ export async function sampleDnsSource(
       credentials: "omit",
     },
   );
-  signal.throwIfAborted();
+  throwIfAborted(signal);
   const results = parseDnsResponse(source.name, data);
   if (!results.length) throw new Error(t("未获取到 DNS 出口"));
   return results;
@@ -114,7 +114,7 @@ export async function detectDnsExits(
     round < Math.max(...dnsSources.map((source) => source.samples));
     round++
   ) {
-    signal.throwIfAborted();
+    throwIfAborted(signal);
     await Promise.all(
       dnsSources
         .filter((source) => round < source.samples)
@@ -150,7 +150,7 @@ export async function detectDnsExits(
               },
             };
           }
-          signal.throwIfAborted();
+          throwIfAborted(signal);
           state = { ...state, count: state.count + 1 };
           onProgress(state);
         }),
