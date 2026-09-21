@@ -4656,17 +4656,25 @@ body {
    a plain button state on small screens so the active tool always remains
    readable even when CSS color-mix or compositing is unavailable. */
 @media (max-width: 48rem) {
+  .app-nav > .nav-tabs-scroll {
+    position: relative;
+    z-index: 1;
+  }
   .app-nav [data-slot="animated-segmented-tabs-highlight"] {
     display: none;
   }
   .app-nav [data-slot="animated-segmented-tabs-trigger"] {
-    color: var(--muted-foreground) !important;
+    color: #53616f !important;
+    -webkit-text-fill-color: #53616f !important;
     opacity: 1 !important;
   }
   .app-nav [data-slot="animated-segmented-tabs-trigger"][data-state="active"] {
     z-index: 2;
-    background: var(--primary) !important;
-    color: var(--primary-foreground, #fff) !important;
+    background: #1976d2 !important;
+    background-color: #1976d2 !important;
+    background-image: none !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
     opacity: 1 !important;
   }
   .app-nav
@@ -4679,4 +4687,18 @@ body {
     background: var(--info-soft) !important;
     color: var(--info-text, var(--primary)) !important;
   }
+}
+
+/* The flattened legacy sheet cannot mix the gold card color with a
+   transparent background. Keep the two IP classification labels readable on
+   both iOS 15 and iOS 16 while preserving the gold card palette. */
+.home-primary-card .ip-type-badge {
+  background-color: #e8f1fb !important;
+  color: #185a9d !important;
+  -webkit-text-fill-color: #185a9d !important;
+}
+.home-primary-card.ip-dossier-perfect .ip-type-badge {
+  background-color: #ecd39b !important;
+  color: #49371f !important;
+  -webkit-text-fill-color: #49371f !important;
 }
