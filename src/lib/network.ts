@@ -9,20 +9,64 @@ export class HttpRequestError extends Error {
   }
 }
 
+/**
+ * Safari 15/16 do not expose AbortSignal.timeout(), AbortSignal.any(), or
+ * AbortSignal.throwIfAborted(). Keep cancellation on the basic AbortController
+ * API so every browser probe follows the same path on older WebKit builds.
+ */
+export function timeoutSignal(milliseconds: number): AbortSignal {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort(new Error(t("请求超时")));
+  }, milliseconds);
+  controller.signal.addEventListener(
+    "abort",
+    () => clearTimeout(timer),
+    { once: true },
+  );
+  return controller.signal;
+}
+
+export function combineSignals(
+  ...signals: Array<AbortSignal | null | undefined>
+): AbortSignal {
+  const active = signals.filter((signal): signal is AbortSignal => !!signal);
+  if (active.length === 1) return active[0];
+  const controller = new AbortController();
+  const abort = (signal: AbortSignal) => {
+    if (controller.signal.aborted) return;
+    controller.abort(signal.reason ?? new Error(t("已停止")));
+  };
+  active.forEach((signal) => {
+    if (signal.aborted) abort(signal);
+    else signal.addEventListener("abort", () => abort(signal), { once: true });
+  });
+  return controller.signal;
+}
+
+export function withTimeout(
+  signal: AbortSignal | null | undefined,
+  milliseconds: number,
+): AbortSignal {
+  return combineSignals(signal, timeoutSignal(milliseconds));
+}
+
+export function throwIfAborted(signal?: AbortSignal): void {
+  if (!signal?.aborted) return;
+  throw signal.reason ?? new Error(t("已停止"));
+}
+
 /** Only HTTP transport for browser probes and API calls. Never proxy browser probes. */
 export async function request<T>(
   url: string,
   init: RequestInit = {},
   mode: ResponseMode = "json",
 ): Promise<T> {
-  const timeout = AbortSignal.timeout(12_000);
-  const signal = init.signal
-    ? AbortSignal.any([init.signal, timeout])
-    : timeout;
-  signal.throwIfAborted();
+  const signal = withTimeout(init.signal, 12_000);
+  throwIfAborted(signal);
   let onAbort: () => void = () => {};
   const aborted = new Promise<never>((_, reject) => {
-    onAbort = () => reject(signal.reason);
+    onAbort = () => reject(signal.reason ?? new Error(t("已停止")));
     signal.addEventListener("abort", onAbort, { once: true });
   });
   try {
@@ -84,9 +128,7 @@ export async function trace(domain: string, signal?: AbortSignal) {
     await request<string>(
       `https://${domain}/cdn-cgi/trace`,
       {
-        signal: signal
-          ? AbortSignal.any([signal, AbortSignal.timeout(3000)])
-          : AbortSignal.timeout(3000),
+        signal: withTimeout(signal, 3000),
         cache: "no-store",
       },
       "text",
@@ -102,9 +144,7 @@ export async function probe(url: string, signal?: AbortSignal) {
       {
         mode: "no-cors",
         cache: "no-store",
-        signal: signal
-          ? AbortSignal.any([signal, AbortSignal.timeout(3000)])
-          : AbortSignal.timeout(3000),
+        signal: withTimeout(signal, 3000),
       },
       "opaque",
     );
