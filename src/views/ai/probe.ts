@@ -1,5 +1,10 @@
 import { t } from "@/i18n";
-import { request, parseTrace } from "../../lib/network.ts";
+import {
+  parseTrace,
+  request,
+  throwIfAborted,
+  withTimeout,
+} from "../../lib/network.ts";
 
 export interface AiProbeResult {
   samples: number[];
@@ -18,7 +23,7 @@ export async function probeAiDomain(
       ? "/robots.txt"
       : "/favicon.ico";
   const samples: number[] = [];
-  signal?.throwIfAborted();
+  throwIfAborted(signal);
   const start = performance.now();
   try {
     const body = await request<string>(
@@ -27,9 +32,7 @@ export async function probeAiDomain(
         mode: readable ? "cors" : "no-cors",
         credentials: "omit",
         cache: "no-store",
-        signal: signal
-          ? AbortSignal.any([signal, AbortSignal.timeout(3000)])
-          : AbortSignal.timeout(3000),
+        signal: withTimeout(signal, 3000),
       },
       readable ? "text" : "opaque",
     );
