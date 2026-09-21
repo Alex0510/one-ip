@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { HttpRequestError } from "@/lib/network";
+import { HttpRequestError, throwIfAborted } from "@/lib/network";
 import { runPing } from "@/views/ping/api";
 import {
   AIM_VERSION,
@@ -134,7 +134,7 @@ export function useScenarioEvidence(ip: string) {
         };
       } else
         result = await measurePlatform(ip, target!, control.signal, update);
-      control.signal.throwIfAborted();
+      throwIfAborted(control.signal);
       update(result);
       if (cache.size >= 50) cache.delete(cache.keys().next().value!);
       cache.set(prefix + key, result);
