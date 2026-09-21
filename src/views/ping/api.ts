@@ -1,5 +1,5 @@
 import { t } from "@/i18n";
-import { endpoint } from "@/lib/network";
+import { endpoint, throwIfAborted } from "@/lib/network";
 
 export interface PingResponse {
   reusedAt?: number;
@@ -39,12 +39,12 @@ async function runBatch(
     signal,
   });
   for (let i = 0; i < 12; i++) {
-    signal.throwIfAborted();
+    throwIfAborted(signal);
     const data = await endpoint<PingResponse>(
       `/ping/result/${encodeURIComponent(created.id)}`,
       { signal },
     );
-    signal.throwIfAborted();
+    throwIfAborted(signal);
     onProgress?.(data);
     if (data.status === "finished") return data;
     await new Promise<void>((resolve, reject) => {
@@ -91,7 +91,7 @@ export async function runPing(
   signal: AbortSignal,
   onProgress?: (data: PingResponse) => void,
 ) {
-  signal.throwIfAborted();
+  throwIfAborted(signal);
   const cacheKey = JSON.stringify({
     host: input.host.trim().toLowerCase(),
     protocol: input.protocol ?? "icmp",
@@ -122,7 +122,7 @@ export async function runPing(
   let collected: PingResponse["results"] = [];
   let final: PingResponse | undefined;
   for (let index = 0; index < batches.length; index++) {
-    signal.throwIfAborted();
+    throwIfAborted(signal);
     final = await runBatch(batches[index], signal, (data) =>
       onProgress?.({
         ...data,
