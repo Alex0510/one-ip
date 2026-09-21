@@ -271,7 +271,7 @@ export function HomePage() {
                       <Badge
                         key={type.label}
                         variant="secondary"
-                        className={`h-4 px-1.5 text-[10px] font-medium tracking-normal ${type.color}`}
+                        className={`ip-type-badge h-4 px-1.5 text-[10px] font-medium tracking-normal ${type.color}`}
                       >
                         {type.label}
                       </Badge>
