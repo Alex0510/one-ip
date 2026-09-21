@@ -1,4 +1,4 @@
-import { parseTrace } from "@/lib/network";
+import { parseTrace, throwIfAborted, withTimeout } from "@/lib/network";
 import {
   AIM_VERSION,
   ACCESS_VERSION,
@@ -37,12 +37,12 @@ async function egress(
       mode: "cors",
       credentials: "omit",
       cache: "no-store",
-      signal: AbortSignal.any([signal, AbortSignal.timeout(3000)]),
+      signal: withTimeout(signal, 3000),
     });
     if (!response.ok || new URL(response.url).origin !== origin) return;
     return parseTrace(await response.text()).ip;
   } catch {
-    signal.throwIfAborted();
+    throwIfAborted(signal);
     return;
   }
 }
@@ -56,9 +56,8 @@ export async function measurePlatforms(
   signal: AbortSignal,
   progress: (target: ScenarioTarget, value: Evidence) => void,
 ): Promise<Record<string, Evidence>> {
-  signal.throwIfAborted();
-  const deadline = AbortSignal.timeout(ACCESS_BUDGET_MS);
-  const batchSignal = AbortSignal.any([signal, deadline]);
+  throwIfAborted(signal);
+  const batchSignal = withTimeout(signal, ACCESS_BUDGET_MS);
   const unique = [
     ...new Map(targets.map((target) => [target.url, target])).values(),
   ];
@@ -84,10 +83,7 @@ export async function measurePlatforms(
       while (queue.length && !batchSignal.aborted) {
         const job = queue.shift()!;
         const start = performance.now();
-        const requestSignal = AbortSignal.any([
-          batchSignal,
-          AbortSignal.timeout(ACCESS_REQUEST_MS),
-        ]);
+        const requestSignal = withTimeout(batchSignal, ACCESS_REQUEST_MS);
         let sample: HttpSample;
         try {
           const response = await fetch(job.target.url, {
@@ -158,7 +154,7 @@ export async function measurePlatforms(
       }
     }),
   );
-  signal.throwIfAborted();
+  throwIfAborted(signal);
   for (const job of jobs) {
     if (job.result.state === "running") {
       job.result.state = summarizeHttp(job.result.samples);
@@ -193,7 +189,7 @@ export async function measureQuality(
   if (evidence.egressBefore && !sameIp(evidence.egressBefore, ip))
     return { ...evidence, state: "mismatch" };
   const { default: SpeedTest } = await import("@cloudflare/speedtest");
-  signal.throwIfAborted();
+  throwIfAborted(signal);
   const turnUri = import.meta.env.VITE_SPEEDTEST_TURN_URI?.trim();
   const credentialsUrl =
     import.meta.env.VITE_SPEEDTEST_TURN_CREDENTIALS_URL?.trim();
