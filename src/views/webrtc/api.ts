@@ -1,5 +1,5 @@
 import { t } from "@/i18n";
-import { endpoint, trace } from "@/lib/network";
+import { endpoint, throwIfAborted, trace } from "@/lib/network";
 import type { Geo, RtcResult } from "@/lib/types";
 
 export function isPublicCandidate(ip: string) {
@@ -92,11 +92,11 @@ export async function collectCandidates(
     await Promise.all([
       gathered,
       (async () => {
-        signal.throwIfAborted();
+        throwIfAborted(signal);
         await pc.setLocalDescription(await pc.createOffer());
       })(),
     ]);
-    signal.throwIfAborted();
+    throwIfAborted(signal);
     return [...found.values()];
   } finally {
     clearTimeout(timer);
@@ -125,7 +125,7 @@ export async function runWebRtc(_: void, signal: AbortSignal) {
       }
     }),
   );
-  signal.throwIfAborted();
+  throwIfAborted(signal);
   const different = results.some(
     (row) => row.public && baseline && row.ip !== baseline.ip,
   );
