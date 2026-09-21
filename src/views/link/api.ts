@@ -1,4 +1,4 @@
-import { probe } from "@/lib/network";
+import { probe, throwIfAborted } from "@/lib/network";
 
 export { probe };
 export interface ProbeResult {
@@ -14,11 +14,11 @@ export async function testConnectivity(
   let consecutiveFailures = 0;
   onProgress?.(summarize(samples));
   for (let i = 0; i < 8; i++) {
-    signal?.throwIfAborted();
+    throwIfAborted(signal);
     const latency = await probe(url, signal);
     samples.push(latency);
     consecutiveFailures = latency < 0 ? consecutiveFailures + 1 : 0;
-    signal?.throwIfAborted();
+    throwIfAborted(signal);
     onProgress?.(summarize(samples));
     if (consecutiveFailures >= 2) break;
   }
