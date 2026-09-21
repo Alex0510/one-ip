@@ -62,6 +62,12 @@ export default defineConfig(() => {
     define: {
       "import.meta.env.VITE_BUILD_TIME": JSON.stringify(buildTime),
     },
+    // iOS 16 ships Safari 16 WebKit. Vite defaults to `esnext`, which leaves
+    // newer syntax in the module graph and makes the app fail before React
+    // mounts on older WebKit versions.
+    build: {
+      target: "safari16",
+    },
     server: {
       host: "127.0.0.1",
       port: 5137,
