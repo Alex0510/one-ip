@@ -1,4 +1,4 @@
-import { endpoint, trace } from "@/lib/network";
+import { endpoint, trace, withTimeout } from "@/lib/network";
 import type { Geo } from "@/lib/types";
 import { getDomesticIp } from "@/views/home/api";
 
@@ -16,7 +16,7 @@ export function claudeExit(
   domain: (typeof claudeDomains)[number],
   signal: AbortSignal,
 ) {
-  return trace(domain, AbortSignal.any([signal, AbortSignal.timeout(3000)]));
+  return trace(domain, withTimeout(signal, 3000));
 }
 
 export function compareExits(left?: string, right?: string) {
