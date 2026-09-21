@@ -22,6 +22,14 @@ html.legacy-webkit .app-container {
   max-width: 100%;
   overflow-x: hidden;
 }
+/* iOS 15 keeps unsupported color functions inside custom properties. Give
+   the brand token a concrete fallback so selected controls do not become
+   white text on a transparent surface. */
+html.legacy-webkit {
+  --primary: #1976d2;
+  --ring: #1976d2;
+  --sidebar-primary: #1976d2;
+}
 
 @media (max-width: 767px) {
   html,
@@ -4641,5 +4649,34 @@ body {
     grid-row: 2;
     font-size: 12px;
     overflow-wrap: anywhere;
+  }
+}
+
+/* WebKit 15/16 can paint the animated highlight above its trigger text. Use
+   a plain button state on small screens so the active tool always remains
+   readable even when CSS color-mix or compositing is unavailable. */
+@media (max-width: 48rem) {
+  .app-nav [data-slot="animated-segmented-tabs-highlight"] {
+    display: none;
+  }
+  .app-nav [data-slot="animated-segmented-tabs-trigger"] {
+    color: var(--muted-foreground) !important;
+    opacity: 1 !important;
+  }
+  .app-nav [data-slot="animated-segmented-tabs-trigger"][data-state="active"] {
+    z-index: 2;
+    background: var(--primary) !important;
+    color: var(--primary-foreground, #fff) !important;
+    opacity: 1 !important;
+  }
+  .app-nav
+    [data-slot="animated-segmented-tabs-trigger"][data-state="active"]
+    svg {
+    color: currentColor !important;
+    opacity: 1 !important;
+  }
+  .tool-subnav a[aria-current="page"] {
+    background: var(--info-soft) !important;
+    color: var(--info-text, var(--primary)) !important;
   }
 }
