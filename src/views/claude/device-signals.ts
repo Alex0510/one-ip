@@ -1,4 +1,5 @@
 import type { BrowserNavigator } from "@/views/browser/environment";
+import { throwIfAborted } from "@/lib/network";
 import {
   CN_TIMEZONES,
   CN_BROWSER_PATTERNS,
@@ -76,7 +77,7 @@ function renderEmoji(emoji: string) {
 }
 
 export async function collectDeviceSignals(signal: AbortSignal) {
-  signal.throwIfAborted();
+  throwIfAborted(signal);
   const nav = navigator as BrowserNavigator;
   let model: string | undefined;
   if (nav.userAgentData?.getHighEntropyValues) {
@@ -96,7 +97,7 @@ export async function collectDeviceSignals(signal: AbortSignal) {
       clearTimeout(timer);
     }
   }
-  signal.throwIfAborted();
+  throwIfAborted(signal);
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const languages = Array.from(
     nav.languages.length ? nav.languages : [nav.language],
