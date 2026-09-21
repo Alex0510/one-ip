@@ -58,9 +58,12 @@ function extractCascadeLayerContents(css: string) {
   return contents.join("\n");
 }
 
-function legacyCascadeLayerStyles(): Plugin {
+function legacyCascadeLayerStyles(version: string): Plugin {
   return {
     name: "legacy-cascade-layer-styles",
+    transformIndexHtml(html) {
+      return html.replaceAll("__LEGACY_CSS_VERSION__", version);
+    },
     generateBundle(_, bundle) {
       const stylesheet = Object.values(bundle).find(
         (item) =>
@@ -120,7 +123,7 @@ export default defineConfig(() => {
     plugins: [
       react(),
       tailwindcss(),
-      legacyCascadeLayerStyles(),
+      legacyCascadeLayerStyles(buildTime),
       excludeBackendSource(),
       {
         name: "app-build-version",
