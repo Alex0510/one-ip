@@ -11,6 +11,13 @@ html.legacy-webkit *::after {
 html.legacy-webkit,
 html.legacy-webkit body,
 html.legacy-webkit #root {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+html.legacy-webkit .app-container {
+  width: 100%;
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
