@@ -61,7 +61,8 @@
           var legacyLink = document.createElement("link");
           legacyLink.id = "legacy-webkit-styles";
           legacyLink.rel = "stylesheet";
-          legacyLink.href = "/assets/index-legacy.css";
+        legacyLink.href =
+          "/assets/index-legacy.css?v=__LEGACY_CSS_VERSION__";
           document.head.insertBefore(legacyLink, document.head.firstChild);
         }
         try {
