@@ -1,5 +1,12 @@
 import { t } from "@/i18n";
-import { endpoint, probe, request, trace } from "@/lib/network";
+import {
+  endpoint,
+  probe,
+  request,
+  throwIfAborted,
+  trace,
+  withTimeout,
+} from "@/lib/network";
 import type { Geo } from "@/lib/types";
 
 export const getMyIp = (signal?: AbortSignal) =>
@@ -9,8 +16,7 @@ export async function getGeo(
   signal?: AbortSignal,
   timeoutMs = 3000,
 ): Promise<Geo> {
-  const timeout = AbortSignal.timeout(timeoutMs);
-  signal = signal ? AbortSignal.any([signal, timeout]) : timeout;
+  signal = withTimeout(signal, timeoutMs);
   const options = () => ({ signal });
   try {
     const data = await request<Geo>(
@@ -21,7 +27,7 @@ export async function getGeo(
       throw new Error(t("归属信息不完整"));
     return { ...data, ip, source: "ip.sb" };
   } catch {
-    signal?.throwIfAborted();
+    throwIfAborted(signal);
     const data = await request<{
       success: boolean;
       country?: string;
@@ -50,8 +56,7 @@ export async function getGeo(
   }
 }
 export async function getDomesticIp(signal?: AbortSignal): Promise<Geo> {
-  const timeout = AbortSignal.timeout(3000);
-  signal = signal ? AbortSignal.any([signal, timeout]) : timeout;
+  signal = withTimeout(signal, 3000);
   const sources = [
     {
       url: "https://necaptcha.nosdn.127.net/ab7f4275c1744aa28e0a8f3a1c58c532.png",
@@ -63,7 +68,7 @@ export async function getDomesticIp(signal?: AbortSignal): Promise<Geo> {
     },
   ];
   for (const source of sources) {
-    signal?.throwIfAborted();
+    throwIfAborted(signal);
     try {
       const headers = await request<Headers>(
         source.url,
@@ -138,10 +143,8 @@ export async function detectSite(
 ): Promise<Geo> {
   if (site.method === "unsupported")
     throw new Error(t(site.note ?? "未获取到可读取的出口 IP"));
-  signal = signal
-    ? AbortSignal.any([signal, AbortSignal.timeout(3000)])
-    : AbortSignal.timeout(3000);
-  signal.throwIfAborted();
+  signal = withTimeout(signal, 3000);
+  throwIfAborted(signal);
   let geo: Geo;
   if (site.method === "cftrace" && site.domain)
     geo = await trace(site.domain, signal);
@@ -194,9 +197,7 @@ export async function getBrowserIp(
   const data = await request<{ ip: string }>(
     `https://${version === 4 ? "api4" : "api6"}.ipify.org?format=json`,
     {
-      signal: signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(3000)])
-        : AbortSignal.timeout(3000),
+      signal: withTimeout(signal, 3000),
       cache: "no-store",
     },
   );
